@@ -5,6 +5,7 @@ from app.database import get_db
 from fastapi import Depends, HTTPException, status
 from app import models, schemas, oauth2
 from app.africas_talking import SMS, PaymentService
+# from app.tasks import change_paid_status, notify_passenger_via_sms, make_payment
 
 
 
@@ -60,8 +61,15 @@ async def notify_passenger_via_sms(db, curr_user_id:int):
         print(sms_response)
         return sms_response
 
-  
-        
+async def make_payment(phoneNumber:str, amount:float):
+    await PaymentService().checkout(
+        productName = 'Fast.Coach.API',
+        phoneNumber = phoneNumber,
+        currencyCode = 'KES',
+        amount = amount
+    )
+
+
 
 
 
@@ -75,25 +83,26 @@ async def payment_process_via_africans_talking(db, curr_user_id:int, ticket_id:i
     - (stkpush via africas_talking api)
 
     '''
-    try:
-        user = db.query(models.User).filter(models.User.user_id == curr_user_id).first()
-        if user:
-            await PaymentService().checkout(
-                productName = 'Fast.Coach.API',
-                phoneNumber = user.phone_number,
-                currencyCode = 'KES',
-                amount = amount
-            )
-            await notify_passenger_via_sms(
-                db,
-                curr_user_id,
-            )
-            await change_paid_status(
-                db,
-                ticket_id,
-            )
-    except Exception as error:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error))
+    user = db.query(models.User).filter(models.User.user_id == curr_user_id).first()
+    if user:
+            # celery task
+        await make_payment(
+            phoneNumber=user.phone_number,
+            amount=amount
+        )
+            
+            # celery 
+        await notify_passenger_via_sms(
+            db,
+            curr_user_id,
+        )
+            # celery task 
+        await change_paid_status(
+            db,
+            ticket_id,
+        )
+    return {'message':'Kindly wait as we process yor request'}
+   
 
 
 
