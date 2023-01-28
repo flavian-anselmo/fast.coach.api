@@ -12,7 +12,6 @@ get req
 '''
 
 
-from datetime import datetime, timedelta
 from typing import List
 from fastapi import APIRouter
 from sqlalchemy.orm import session
