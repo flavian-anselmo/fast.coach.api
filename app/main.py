@@ -1,10 +1,8 @@
-from datetime import timedelta
-from fastapi import Depends, FastAPI
-from . import models
-from app.database import engine, get_db
+from fastapi import  FastAPI
 from app.routers import users, auth, admin, bookings, payments
-from sqlalchemy.orm import session
 from fastapi.middleware.cors import CORSMiddleware
+from .tasks import add
+
 
 
 
@@ -13,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(
-
     title= "fast-coach-api",
     description="Bus Ticketing System API ",
     version="0.0.1",
@@ -29,11 +26,13 @@ app = FastAPI(
     },
 )
 
+
+
+
+#cors
 origins = [
     '*'
 ]
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -45,19 +44,18 @@ app.add_middleware(
 
 
 # routers 
-
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(bookings.router)
 app.include_router(payments.router)
 
-# tasks with scheduled intervals 
 
 # root 
 @app.get("/")
 def read_root():
-    return {"message": "Fast.Coach.API"}
+    res = add.delay(4,2)
+    return {"message": f"Fast.Coach.API-----> {res}"}
 
 
 
