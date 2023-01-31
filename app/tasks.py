@@ -6,6 +6,8 @@ from app.africas_talking import SMS, PaymentService
 from sqlalchemy.orm import session
 from datetime import datetime
 
+from app.database import SessionLocal, get_db
+
 
 
 celery_log = get_task_logger(__name__)
@@ -108,9 +110,16 @@ def change_travel_status_to_past(db:session):
         db.commit()
         celery_log.info('Updated all rows succesfully')
 
+
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(60.0, change_travel_status_to_past.s(db))
+           # session instance 
+    db = SessionLocal()
+    try:
+        sender.add_periodic_task(60.0, change_travel_status_to_past.s(db))
+        yield db 
 
+    finally:
+        db.close()    
 
 
