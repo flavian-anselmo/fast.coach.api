@@ -3,6 +3,8 @@ from celery.utils.log import get_task_logger
 from app import models
 from sqlalchemy.orm import session
 from datetime import datetime
+import pytz
+
 
 from app.database import SessionLocal
 
@@ -54,7 +56,8 @@ def change_travel_status_to_past():
     tickets = db.query(models.BookTicket).all()
 
     for ticket in tickets:
-        if ticket.travel_date < datetime.utcnow():
+        if ticket.travel_date < datetime.utcnow().replace(tzinfo=pytz.UTC):
+            celery_log.info('compare dates')
             ticket.travel_status = 'past'
     db.commit()
     celery_log.info('Updated all rows succesfully')
