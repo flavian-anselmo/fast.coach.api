@@ -53,6 +53,10 @@ async def reduce_no_seats(bus_id:int, db:session):
 
 # ---------------------[track seats]--------------------------------------
 async def track_seats(bus_id:int, seat_no:str,db:session):
+    '''
+    keep track of the booked seats 🎢
+    
+    '''
     try:
         bus = db.query(models.BookedSeats).filter(models.BookedSeats.bus_id == bus_id).first()
         if bus:
@@ -111,7 +115,7 @@ async def book_ticket(ticket:schemas.BookTicketCreate,  db:session = Depends(get
                 db,
             )
             db.refresh(new_ticket)
-            return {'message':'Ticket Booked Successfully'}
+            return new_ticket
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='The bus is fully booked')    
     except Exception as error:
