@@ -21,16 +21,16 @@ parameters{
 
 import africastalking
 from fastapi import HTTPException, status
-from app.config import settings
+# from app.config import settings
 
 class PaymentService:
     def __init__(self) -> None:
-        self.username = settings.africas_talking_env
-        self.api_key = settings.africas_talking_api_key
+        self.username = 'sandbox'
+        self.api_key = '8095bcf2725bfb742efbb3c12c07f1cb327269b579d0f518bec429b1be44ab2d'
         africastalking.initialize(username = self.username, api_key = self.api_key)
         self.payment = africastalking.Payment
 
-    async def checkout (self, productName:str, phoneNumber:str, currencyCode:str, amount:float):
+    def checkout (self, productName:str, phoneNumber:str, currencyCode:str, amount:float):
         '''
         pay for the product 
 
@@ -48,20 +48,20 @@ class PaymentService:
             raise HTTPException(status_code = status.HTTP_417_EXPECTATION_FAILED, detail=str(error))
 
 
-class SMS:
+class SMS: 
     def __init__(self) -> None:
-        self.username = settings.africas_talking_env
-        self.api_key = settings.africas_talking_api_key
+        self.username = 'sandbox'
+        self.api_key = '8095bcf2725bfb742efbb3c12c07f1cb327269b579d0f518bec429b1be44ab2d'
         africastalking.initialize(username = self.username, api_key = self.api_key)
         self.sms = africastalking.SMS
-    async def send_sms(self, recipient:list[str], msg:str):
+    def send_sms(self, recipient:list[str], msg:str):
         '''
         - send a text after a booking is done successfully and also when the travel date approaches 
         
         '''
         # recipients = ['+254798071510']
         # message = 'hello'
-        sender = settings.sender_code
+        sender = '1795'
         try:
             response =  self.sms.send(msg, recipient, sender)
             return response
@@ -81,7 +81,6 @@ def pay():
         recipient = ['+254798071510'],
         msg = 'hello world',
     )
-
 
 
 # pay()

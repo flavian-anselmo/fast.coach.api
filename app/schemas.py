@@ -76,7 +76,7 @@ class BusResponse(BusCreate):
 
 class TravelStatus(str, Enum):
     upcoming = 'upcoming'
-    past = 'Past'
+    past = 'past'
 
 
 

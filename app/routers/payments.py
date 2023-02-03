@@ -5,6 +5,7 @@ from app.database import get_db
 from fastapi import Depends, HTTPException, status
 from app import models, schemas, oauth2
 from app.africas_talking import SMS, PaymentService
+from app.tasks import notify_passenger_via_sms
 # from app.tasks import change_paid_status, notify_passenger_via_sms, make_payment
 
 
@@ -22,7 +23,7 @@ router = APIRouter(
 
 
 
-async def change_paid_status(db, ticket_id:int):
+def change_paid_status(db, ticket_id:int):
     '''
     - change the paid status in booking table to paid = True
     - This methos is initiated only when the payment process is succefull 
@@ -44,25 +45,10 @@ async def change_paid_status(db, ticket_id:int):
 
 
 
-async def notify_passenger_via_sms(db, curr_user_id:int):
-    '''
-    - after the user has paid notify them via sm 
-    - Notify them if the payment was succesfull or not 
-    - if no -> then retyr the process after 5 minutes as a background task 
 
-    '''
 
-    user = db.query(models.User).filter(models.User.user_id == curr_user_id).first()
-    if user:
-        sms_response = await SMS().send_sms(
-            recipient=[user.phone_number],
-            msg= f'Hello {user.last_name}, thanks for booking with fastcoach!'
-        )
-        print(sms_response)
-        return sms_response
-
-async def make_payment(phoneNumber:str, amount:float):
-    await PaymentService().checkout(
+def make_payment(phoneNumber:str, amount:float):
+    PaymentService().checkout(
         productName = 'Fast.Coach.API',
         phoneNumber = phoneNumber,
         currencyCode = 'KES',
@@ -77,7 +63,7 @@ async def make_payment(phoneNumber:str, amount:float):
 
 
 
-async def payment_process_via_africans_talking(db, curr_user_id:int, ticket_id:int, amount:float):
+def payment_process_via_africans_talking(db, curr_user_id:int, ticket_id:int, amount:float):
     '''
     - actual payment process initation 
     - (stkpush via africas_talking api)
@@ -86,22 +72,21 @@ async def payment_process_via_africans_talking(db, curr_user_id:int, ticket_id:i
     user = db.query(models.User).filter(models.User.user_id == curr_user_id).first()
     if user:
             # celery task
-        await make_payment(
+        make_payment(
             phoneNumber=user.phone_number,
             amount=amount
         )
             
-            # celery 
-        await notify_passenger_via_sms(
-            db,
+        # celery task🤹
+        notify_passenger_via_sms.delay(
             curr_user_id,
         )
             # celery task 
-        await change_paid_status(
+        change_paid_status(
             db,
             ticket_id,
         )
-    return {'message':'Kindly wait as we process yor request'}
+    return {'message':'Kindly wait as we process your request'}
    
 
 
@@ -111,7 +96,7 @@ async def payment_process_via_africans_talking(db, curr_user_id:int, ticket_id:i
 
 # -------------------------[Payment Endpoint]------------------------------------
 @router.post('/stkpush', response_model=schemas.PaymentResponse)
-async def pay_for_ticket(payament:schemas.PaymentCreate, db:session = Depends(get_db), curr_user = Depends(oauth2.get_current_user_logged_in)):
+def pay_for_ticket(payament:schemas.PaymentCreate, db:session = Depends(get_db), curr_user = Depends(oauth2.get_current_user_logged_in)):
     '''
     - initiate payment with africas talking stkpush  
     - After payments are successfull a message is sent to the passenger notifying them of the booking 
@@ -122,7 +107,7 @@ async def pay_for_ticket(payament:schemas.PaymentCreate, db:session = Depends(ge
      
 
         ''' initiate payment '''
-        await payment_process_via_africans_talking(
+        payment_process_via_africans_talking(
             db,
             curr_user.user_id,
             payament.ticket_id,

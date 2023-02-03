@@ -222,7 +222,7 @@ async def get_all_past_travels(db:session = Depends(get_db), curr_user = Depends
     get the travel history of a user 
 
     '''
-    past_travel = db.query(models.BookTicket).filter(models.BookTicket.travel_status == schemas.TravelStatus.past).all()
+    past_travel = db.query(models.BookTicket).filter( models.BookTicket.passenger_id.__eq__(curr_user.user_id) and models.BookTicket.travel_status.__eq__('past')).all()
     if not past_travel:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail='No past travels, Kindly Book travel')
     return past_travel
