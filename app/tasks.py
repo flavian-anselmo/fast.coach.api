@@ -66,6 +66,29 @@ def change_travel_status_to_past():
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(60.0, change_travel_status_to_past.s())
 
+
+
+
+
+@celery_app.task
+def change_paid_status(ticket_id:int):
+    '''
+    - change the paid status in booking table to paid = True
+    - This methos is initiated only when the payment process is succefull 
+
+    '''
+    db = SessionLocal()
+    try:
+        paid_status = db.query(models.BookTicket).filter(models.BookTicket.ticket_id == ticket_id).first()
+        if paid_status.is_paid == False:
+            paid_status.is_paid = True
+            db.commit()
+            db.refresh(paid_status)
+            return paid_status.is_paid
+    except Exception as error:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error))
+
+
 @celery_app.task
 def notify_passenger_via_sms( curr_user_id:int):
     '''
@@ -82,5 +105,19 @@ def notify_passenger_via_sms( curr_user_id:int):
             recipient=[user.phone_number],
             msg= f'Hello {user.last_name}, thanks for booking with fastcoach!'
         )
-        print(sms_response)
-    return {"detail":"wait a message is being sent"}
+        return sms_response
+
+
+@celery_app.task
+def make_payment(phoneNumber:str, amount:float):
+    '''
+    pay 🚀
+    
+    '''
+    PaymentService().checkout(
+        productName = 'Fast.Coach.API',
+        phoneNumber = phoneNumber,
+        currencyCode = 'KES',
+        amount = amount
+    )
+

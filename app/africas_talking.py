@@ -35,10 +35,6 @@ class PaymentService:
         pay for the product 
 
         '''
-        # productName:str = 'Fast.Coach.API'
-        # phoneNumber:str = '+254798071510'
-        # currencyCode:str = 'KES'
-        # amount = 10.50
         metadata = {"agentId" : "654", "productId" : "321"}
 
         try:
