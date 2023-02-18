@@ -13,7 +13,6 @@ from app.tasks import change_paid_status, make_payment, notify_passenger_via_sms
 
 
 router = APIRouter(
-  
     prefix = '/payments',
     tags = ['payments']
 )
