@@ -29,7 +29,7 @@ celery_app = Celery(
 
 @shared_task
 def add(x:int, y:int):
-    ''' test ⛑️'''
+    ''' test task ⛑️'''
     import time
     time.sleep(5)
     res = x + y
@@ -62,11 +62,35 @@ def change_travel_status_to_past():
             ticket.travel_status = 'past'
     db.commit()
     celery_log.info('Updated all rows succesfully')
+    '''
+    start the clear_booked_seats_to_available() background task after the list is updated 
+    '''
 @celery_app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(60.0, change_travel_status_to_past.s())
 
 
+@celery_app.task
+def clear_booked_seats_to_available():
+    '''
+    clear the booked seats in a bus 🐃
+    - use the depature table to make this update 
+    - also clear the buses in the depature table 
+
+
+    '''
+    pass 
+
+@celery_app.task
+def update_the_number_of_seats_to_original_capacity():
+    '''
+    return the number of seats to original number 
+    eg from 0 -> 64 
+
+    - use the depature table to get the specific buses 
+
+    '''
+    pass
 
 
 
@@ -94,8 +118,8 @@ def notify_passenger_via_sms( curr_user_id:int):
     '''
     - after the user has paid notify them via sm 
     - Notify them if the payment was succesfull or not 
-    - if no -> then retyr the process after 5 minutes as a background task 
-    ✉️
+    - if no -> then retyr the process after 5 minutes as a background task ✉️
+
     '''
     db = SessionLocal()
 
