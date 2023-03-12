@@ -14,10 +14,17 @@ Old repo is [here](https://github.com/flavian-anselmo/fast-coach-api)
     - Flower: For monitoring background tasks 
     - RabbitMQ: A backend for the background tasks 
 
-2. Frontend 
-    - Dart 
-    - Flutter
-
+## Endpoints
+### Users
+![users](assets/users.png)
+### auth
+![auth](assets/auth.png)
+### admin (Drivers, Buses & Routes)
+![admin](assets/admin.png)
+### Book a ticket 
+![tickets](assets/ticket.png)
+### payments (AfricasTalking API)
+![pay](assets/pay.png)
 
 
 # How to install and Run 🏃‍♂️
