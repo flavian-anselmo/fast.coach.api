@@ -136,8 +136,8 @@ class BookedSeats(Base):
     '''
     __tablename__ = 'bookedseats_tbl'
     seats_id = Column(Integer, primary_key = True, nullable = False)
-    bus_id = Column(Integer, ForeignKey('bus_tbl.bus_id'), nullable = False, unique = True)
-    bus = relationship('Bus', uselist =  False, backref = 'bookedseats_tbl')
+    bus_id = Column(Integer, ForeignKey('bus_tbl.bus_id'), nullable = False)
+    bus = relationship('Bus')
     booked_seats = Column(MutableList.as_mutable(ARRAY(String)), nullable = False)
 
 class Depature(Base):

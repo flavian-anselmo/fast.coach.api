@@ -29,9 +29,22 @@ Old repo is [here](https://github.com/flavian-anselmo/fast-coach-api)
 
 # How to install and Run 🏃‍♂️
 
+## install dependancies 
 ```bash 
+pip install -r requirements.txt
 
 ```
+## start the app
+```bash
+uvicorn app.main:app --reload 
+ 
+```
+## start the celery workers
+
+```bash 
+celery -A celery_worker.celery worker --loglevel=DEBUG 
+```
+
 # How to run it with Docker🏃‍♂️
 
 ```bash
